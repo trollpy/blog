@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import ErrorMessage from '../common/ErrorMessage';
 
@@ -6,6 +6,10 @@ const PostForm = ({ post, onSubmit, loading, error }) => {
   const [imagePreview, setImagePreview] = useState(
     post?.featuredImage ? `/uploads/${post.featuredImage}` : null
   );
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState(null);
+
   const {
     register,
     handleSubmit,
@@ -21,6 +25,32 @@ const PostForm = ({ post, onSubmit, loading, error }) => {
       status: post?.status || 'draft'
     }
   });
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const response = await fetch('/api/categories');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        
+        const data = await response.json();
+        setCategories(data.data || []);
+        setCategoriesError(null);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        setCategoriesError(err.message);
+        setCategories([]);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleImageChange = e => {
     const file = e.target.files[0];
@@ -91,12 +121,22 @@ const PostForm = ({ post, onSubmit, loading, error }) => {
           id="category"
           {...register('category', { required: 'Category is required' })}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          disabled={categoriesLoading}
         >
-          <option value="">Select a category</option>
-          {/* Categories will be populated dynamically */}
+          <option value="">
+            {categoriesLoading ? 'Loading categories...' : 'Select a category'}
+          </option>
+          {categories.map(category => (
+            <option key={category._id} value={category._id}>
+              {category.name}
+            </option>
+          ))}
         </select>
         {errors.category && (
           <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
+        )}
+        {categoriesError && (
+          <p className="mt-1 text-sm text-red-600">Error loading categories: {categoriesError}</p>
         )}
       </div>
       <div>

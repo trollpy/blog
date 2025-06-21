@@ -15,11 +15,13 @@ const router = express.Router();
 router
   .route('/')
   .get(advancedResults(Category), getCategories)
-  .post(protect, authorize('admin'), createCategory);
+  // Allow any authenticated user to create categories
+  .post(protect, createCategory);
 
 router
   .route('/:id')
   .get(getCategory)
+  // Only admin can update or delete categories
   .put(protect, authorize('admin'), updateCategory)
   .delete(protect, authorize('admin'), deleteCategory);
 

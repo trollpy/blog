@@ -14,31 +14,31 @@ const upload = require('../middleware/upload');
 
 const router = express.Router();
 
-router
-  .route('/')
+// Middleware to protect only when author=me
+const protectIfAuthorMe = (req, res, next) => {
+  if (req.query.author === 'me') {
+    return protect(req, res, next);
+  }
+  next();
+};
+
+router.route('/')
   .get(
+    protectIfAuthorMe,
     advancedResults(Post, [
-      {
-        path: 'category',
-        select: 'name description'
-      },
-      {
-        path: 'author',
-        select: 'name email avatar'
-      }
+      { path: 'category', select: 'name description' },
+      { path: 'author', select: 'name email avatar' }
     ]),
     getPosts
   )
-  .post(protect, authorize('publisher', 'admin'), createPost);
+  .post(protect, createPost);
 
-router
-  .route('/:id')
+router.route('/:id')
   .get(getPost)
-  .put(protect, authorize('publisher', 'admin'), updatePost)
-  .delete(protect, authorize('publisher', 'admin'), deletePost);
+  .put(protect, authorize('admin', 'publisher'), updatePost)
+  .delete(protect, authorize('admin', 'publisher'), deletePost);
 
-router
-  .route('/:id/photo')
-  .put(protect, authorize('publisher', 'admin'), upload, postPhotoUpload);
+router.route('/:id/photo')
+  .put(protect, authorize('admin', 'publisher'), upload, postPhotoUpload);
 
 module.exports = router;

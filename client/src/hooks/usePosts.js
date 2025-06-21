@@ -11,10 +11,28 @@ const usePosts = (initialFilters = {}) => {
   const fetchPosts = async (customFilters = {}) => {
     setLoading(true);
     setError(null);
+    
     try {
       const combinedFilters = { ...filters, ...customFilters };
-      const query = new URLSearchParams(combinedFilters).toString();
+      
+      // Handle the author: true case
+      const processedFilters = { ...combinedFilters };
+      
+      // If author is true, use 'me' as a special value that backend can handle
+      if (processedFilters.author === true) {
+        processedFilters.author = 'me'; // Backend should handle this
+      }
+      
+      // Remove any invalid filters
+      Object.keys(processedFilters).forEach(key => {
+        if (processedFilters[key] === undefined || processedFilters[key] === null) {
+          delete processedFilters[key];
+        }
+      });
+      
+      const query = new URLSearchParams(processedFilters).toString();
       const res = await api.get(`/api/posts?${query}`);
+      
       setPosts(res.data.data);
       setPagination(res.data.pagination || {});
     } catch (err) {
