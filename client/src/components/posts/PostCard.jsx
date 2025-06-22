@@ -3,17 +3,21 @@ import { Link } from 'react-router-dom';
 
 const PostCard = ({ post, variant = 'default' }) => {
   const isLarge = variant === 'large';
-  
+
   return (
-    <Link 
+    <Link
       to={`/posts/${post._id}`}
-      className="group block bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
+      className="group block rounded-3xl shadow-2xl border border-white/40 bg-white/30 dark:bg-black/30 backdrop-blur-md hover:backdrop-blur-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1"
     >
       {/* Image Container */}
       <div className={`relative overflow-hidden ${isLarge ? 'h-80' : 'h-48'}`}>
         {post.featuredImage && post.featuredImage !== 'no-photo.jpg' ? (
           <img
-            src={`/uploads/${post.featuredImage}`}
+            src={
+              post.featuredImage.startsWith('http')
+                ? post.featuredImage
+                : `/uploads/${post.featuredImage}`
+            }
             alt={post.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -29,14 +33,14 @@ const PostCard = ({ post, variant = 'default' }) => {
             </div>
           </div>
         )}
-        
+
         {/* Category Badge */}
         <div className="absolute top-4 left-4">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-gray-800 backdrop-blur-sm">
             {post.category?.name || 'Uncategorized'}
           </span>
         </div>
-        
+
         {/* Status Badge */}
         {post.status === 'draft' && (
           <div className="absolute top-4 right-4">
